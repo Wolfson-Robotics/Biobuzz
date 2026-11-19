@@ -152,9 +152,9 @@ public abstract class RobotBase extends OpMode {
         flowerTaker = new ServoEx<>(hardwareMap, "flowerTaker");
         if (flowerTaker.servo != null) {
             flowerTaker.swapDirection();
-            flowerTaker.MAX_POSITION = 1.0; // extended - smaller number brings it closer to the floor
-            flowerTaker.MIN_POSITION = 0.7; // closed
-            flowerTaker.applyPosition(flowerTaker.MIN_POSITION);
+            flowerTaker.MIN_POSITION = 0.4; // extended - smaller number brings it closer to the floor
+            flowerTaker.MAX_POSITION = 0.8;
+            flowerTaker.applyPosition(flowerTaker.MAX_POSITION);
         }
 
         try {
