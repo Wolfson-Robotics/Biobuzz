@@ -15,10 +15,15 @@ public class ServoEx<T extends Servo> {
     }
 
     public ServoEx(HardwareMap map, String servoName) {
-        this((T) map.get(servoName));
+        try {
+            this.servo = (T) map.get(servoName);
+        } catch (Exception e) {
+            this.servo = null;
+        }
     }
 
     public void applyPosition(double position) {
+        if (servo == null) return;
         //TODO: return if it has already reached position or is stuck
         //^^^^^: Seems impossible as of 12/6/25
         position = Math.min(position, MAX_POSITION);
@@ -38,6 +43,7 @@ public class ServoEx<T extends Servo> {
      @param swap reverse servo if true
      */
     public void swapDirection(boolean swap) {
+        if (servo == null) return;
         if (swap) {
             servo.setDirection(Servo.Direction.REVERSE);
         } else {
@@ -49,6 +55,7 @@ public class ServoEx<T extends Servo> {
      * Swaps the direction (if its going reverse it swaps forward, etc.)
      */
     public void swapDirection() {
+        if (servo == null) return;
         switch (servo.getDirection()) {
             case FORWARD:
                 swapDirection(true);

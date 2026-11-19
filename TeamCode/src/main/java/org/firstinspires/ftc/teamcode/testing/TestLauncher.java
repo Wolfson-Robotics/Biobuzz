@@ -16,16 +16,24 @@ public class TestLauncher extends OpMode {
 
     @Override
     public void init() {
-        flywheelMotor = hardwareMap.get(DcMotorEx.class, "launcher");
-        flywheelMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        flywheelMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        
-        telemetry.addLine("Init Complete");
+        try {
+            flywheelMotor = hardwareMap.get(DcMotorEx.class, "launcher");
+            flywheelMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            flywheelMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+            telemetry.addLine("Init Complete");
+        } catch (Exception e) {
+            telemetry.addData("Warning", "launcher motor missing on driver hub hardware map");
+        }
         telemetry.update();
     }
 
     @Override
     public void loop() {
+        if (flywheelMotor == null) {
+            telemetry.addData("Error", "launcher motor missing on driver hub");
+            telemetry.update();
+            return;
+        }
         flywheelMotor.setVelocity(targetVelocity, AngleUnit.DEGREES);
 
         telemetry.addData("Target Velocity", targetVelocity);
@@ -37,6 +45,8 @@ public class TestLauncher extends OpMode {
 
     @Override
     public void stop() {
-        flywheelMotor.setVelocity(0);
+        if (flywheelMotor != null) {
+            flywheelMotor.setVelocity(0);
+        }
     }
 }

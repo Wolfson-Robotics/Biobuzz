@@ -26,6 +26,7 @@ public class RollerEx extends Roller<DcMotorEx> {
     Applies SWAP_DIRECTION and sets velocity
     */
     public void applyVelocity(double velocity) {
+        if (motor == null) return;
         velocity = Math.min(velocity, MAX_VELOCITY);
         targetVelocity = velocity;
         curChecks = 0;
@@ -67,6 +68,7 @@ public class RollerEx extends Roller<DcMotorEx> {
      * in order to return true
      */
     public boolean reachedVelocity() {
+        if (motor == null) return false;
         double velocity = motor.getVelocity();
         if (targetVelocity > (velocity - 40) && targetVelocity < (velocity + 40)) {
             curChecks++;

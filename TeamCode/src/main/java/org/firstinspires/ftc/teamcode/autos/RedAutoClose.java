@@ -19,7 +19,7 @@ public void start() {
     shootBetter(1610);
     shootBetter(1610);
     shootBetter(1610);
-    launcher.motor.setPower(0);
+    launcher.applyPower(0);
     stopShoot();
 }
 

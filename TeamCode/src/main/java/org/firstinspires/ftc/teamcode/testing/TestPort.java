@@ -19,6 +19,10 @@ public class TestPort extends OpMode  {
 
     @Override
     public void loop() {
+        if (motorPort.motor == null) {
+            telemetry.addData("Error", "launcher motor missing on driver hub");
+            return;
+        }
         if (gamepad1.dpadDownWasPressed()) { motorPort.swapDirection(); }
 
         motorPort.togglePower(gamepad1.x, motorPort.MAX_POWER);

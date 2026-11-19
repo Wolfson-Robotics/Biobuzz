@@ -20,6 +20,7 @@ public abstract class AutoBase extends RobotBase {
     @Override
     public void init() {
         super.init();
+        /*
 
         if (USE_CAMERA) {
             initCamera();
@@ -28,11 +29,15 @@ public abstract class AutoBase extends RobotBase {
             }
         }
 
+         */
+
         driveSystem.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         driveSystem.getAllMotors().forEach(
                 n -> n.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE)
         );
-        launcher.motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        if (launcher != null && launcher.motor != null) {
+            launcher.motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
 
         stopper.applyPosition(stopper.MIN_POSITION); 
         turret.switchTurretState(Turret.TurretState.GO_TO_ZERO);
@@ -49,7 +54,7 @@ public abstract class AutoBase extends RobotBase {
 
     @Override
     public void loop() {
-        double vel = launcher.motor.getVelocity();
+        double vel = (launcher != null && launcher.motor != null) ? launcher.motor.getVelocity() : 0;
 
         telemetry.addData("USE CAMERA", USE_CAMERA);
         telemetry.addData("Vel" + count, vel);
@@ -72,7 +77,7 @@ public abstract class AutoBase extends RobotBase {
         while (!isStopRequested() && time.seconds() < 5 && !launcher.reachedVelocity()) {
             count++;
             telemetry.addData("Seconds", time.seconds());
-            telemetry.addData("Launcher Vel", launcher.motor.getVelocity());
+            telemetry.addData("Launcher Vel", (launcher.motor != null) ? launcher.motor.getVelocity() : 0);
             telemetry.addData("Reached Stable Vel", launcher.reachedVelocity());
             telemetry.addData("Target Vel", velocity);
             telemetry.addData("Count", count);
@@ -96,10 +101,10 @@ public abstract class AutoBase extends RobotBase {
         ElapsedTime time = new ElapsedTime();
         time.reset();
         int count = 0;
-        while (!isStopRequested() && time.milliseconds() < ms && (launcher.motor.getVelocity() - initVelocity) <= AFTER_SHOOT_VELOCITY_DECREASE) {
+        while (!isStopRequested() && time.milliseconds() < ms && launcher.motor != null && (launcher.motor.getVelocity() - initVelocity) <= AFTER_SHOOT_VELOCITY_DECREASE) {
             telemetry.addData("Seconds", time.seconds());
-            telemetry.addData("Launcher Vel", launcher.motor.getVelocity());
-            telemetry.addData("Reached Lower Vel", (launcher.motor.getVelocity() - initVelocity) <= AFTER_SHOOT_VELOCITY_DECREASE);
+            telemetry.addData("Launcher Vel", (launcher.motor != null) ? launcher.motor.getVelocity() : 0);
+            telemetry.addData("Reached Lower Vel", launcher.motor != null && (launcher.motor.getVelocity() - initVelocity) <= AFTER_SHOOT_VELOCITY_DECREASE);
             telemetry.addData("Count", count);
             telemetry.update();
             count++;

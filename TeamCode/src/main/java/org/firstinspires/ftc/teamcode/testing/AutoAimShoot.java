@@ -21,10 +21,13 @@ public class AutoAimShoot extends AutoBase {
     double a1 = 1.0, a2 = 1.0, a3 = 0.01;
     double[] features = new double[distance.length];
 
+
     @Override
     public void init() {
-        initCamera();
+        // initCamera();
     }
+
+
 
 
     @Override

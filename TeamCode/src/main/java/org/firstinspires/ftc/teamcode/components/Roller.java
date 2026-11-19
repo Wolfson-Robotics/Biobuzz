@@ -15,12 +15,19 @@ public class Roller<T extends DcMotorSimple> {
         this.motor = motor;
     }
 
-    public Roller(HardwareMap map, String motorName) { this((T) map.get(motorName)); }
+    public Roller(HardwareMap map, String motorName) {
+        try {
+            this.motor = (T) map.get(motorName);
+        } catch (Exception e) {
+            this.motor = null;
+        }
+    }
 
     /**
     Applies power
      */
     public void applyPower(double power) {
+        if (motor == null) return;
         power = Math.min(power, MAX_POWER);
         power = Math.max(power, -1);
         motor.setPower(power);
@@ -31,6 +38,7 @@ public class Roller<T extends DcMotorSimple> {
         @param swap reverse roll if true
      */
     public void swapDirection(boolean swap) {
+        if (motor == null) return;
         if (swap) {
             motor.setDirection(DcMotorSimple.Direction.REVERSE);
         } else {
@@ -42,6 +50,7 @@ public class Roller<T extends DcMotorSimple> {
      * Swaps the direction (if its going reverse it swaps forward, etc.)
      */
     public void swapDirection() {
+        if (motor == null) return;
         switch (motor.getDirection()) {
             case FORWARD:
                 swapDirection(true);
@@ -64,6 +73,7 @@ public class Roller<T extends DcMotorSimple> {
      @param increase Increases or decreases the power by POWER_INCREMENT
      */
     public void adjustPower(boolean increase) {
+        if (motor == null) return;
         double power = Math.abs(motor.getPower());
         power += increase ? POWER_INCREMENT : -POWER_INCREMENT;
         applyPower(power);
@@ -75,6 +85,7 @@ public class Roller<T extends DcMotorSimple> {
      @param power power value to be applied if toggle is true
      */
     public void togglePower(boolean toggle, double power) {
+        if (motor == null) return;
         if (!toggle) { power = 0.; }
         applyPower(power);
     }

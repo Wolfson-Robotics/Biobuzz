@@ -25,17 +25,25 @@ public class PIDFLauncher extends OpMode {
 
     @Override
     public void init() {
-        flywheelMotor = hardwareMap.get(DcMotorEx.class, "launcher");
-        flywheelMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        flywheelMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        try {
+            flywheelMotor = hardwareMap.get(DcMotorEx.class, "launcher");
+            flywheelMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            flywheelMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
-        flywheelMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-        telemetry.addLine("Init Complete");
+            PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
+            flywheelMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+            telemetry.addLine("Init Complete");
+        } catch (Exception e) {
+            telemetry.addData("Warning", "launcher motor ('launcher') missing on driver hub hardware map");
+        }
     }
 
     @Override
     public void loop() {
+        if (flywheelMotor == null) {
+            telemetry.addData("Error", "launcher motor missing on driver hub");
+            return;
+        }
         if (gamepad1.yWasPressed()) {
             if (curTargetVelocity == highVelocity) {
                 curTargetVelocity = lowVelocity;

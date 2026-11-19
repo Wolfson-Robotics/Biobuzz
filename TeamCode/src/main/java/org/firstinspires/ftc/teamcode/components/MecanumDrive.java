@@ -13,6 +13,7 @@ import org.firstinspires.ftc.teamcode.RobotBase;
 import static org.firstinspires.ftc.teamcode.debug.util.GeneralUtils.signClamp;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -30,21 +31,37 @@ public class MecanumDrive {
         this.lb = lb;
         this.rf = rf;
         this.rb = rb;
-        this.lf.setDirection(DcMotorSimple.Direction.REVERSE);
-        this.lb.setDirection(DcMotorSimple.Direction.REVERSE);
-        this.lf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        this.lb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        this.rf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        this.rb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        if (this.lf != null) {
+            this.lf.setDirection(DcMotorSimple.Direction.REVERSE);
+            this.lf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
+        if (this.lb != null) {
+            this.lb.setDirection(DcMotorSimple.Direction.REVERSE);
+            this.lb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
+        if (this.rf != null) {
+            this.rf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
+        if (this.rb != null) {
+            this.rb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
     }
 
     public MecanumDrive(HardwareMap map, String lf, String lb, String rf, String rb) {
         this(
-            (DcMotorEx) map.get(lf),
-            (DcMotorEx) map.get(lb),
-            (DcMotorEx) map.get(rf),
-            (DcMotorEx) map.get(rb)
+            (DcMotorEx) safeGet(map, lf),
+            (DcMotorEx) safeGet(map, lb),
+            (DcMotorEx) safeGet(map, rf),
+            (DcMotorEx) safeGet(map, rb)
         );
+    }
+
+    private static Object safeGet(HardwareMap map, String name) {
+        try {
+            return map.get(name);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 
@@ -72,10 +89,10 @@ public class MecanumDrive {
             rightBackPower /= max;
         }
 
-        rf.setPower(rightFrontPower);
-        rb.setPower(rightBackPower);
-        lf.setPower(leftFrontPower);
-        lb.setPower(leftBackPower);
+        if (rf != null) rf.setPower(rightFrontPower);
+        if (rb != null) rb.setPower(rightBackPower);
+        if (lf != null) lf.setPower(leftFrontPower);
+        if (lb != null) lb.setPower(leftBackPower);
     }
 
     /**
@@ -98,7 +115,7 @@ public class MecanumDrive {
     Use for getAllMotors.forEach(n -> n.someDcMotorExMethod());
      */
     public Stream<DcMotorEx> getAllMotors() {
-        return Arrays.stream(new DcMotorEx[]{lf, lb, rf, rb});
+        return Stream.of(lf, lb, rf, rb).filter(Objects::nonNull);
     }
 
     /**
@@ -106,10 +123,10 @@ public class MecanumDrive {
      * @param mode
      */
     public void setMode(DcMotor.RunMode mode) {
-        lb.setMode(mode);
-        lf.setMode(mode);
-        rb.setMode(mode);
-        rf.setMode(mode);
+        if (lb != null) lb.setMode(mode);
+        if (lf != null) lf.setMode(mode);
+        if (rb != null) rb.setMode(mode);
+        if (rf != null) rf.setMode(mode);
     }
 
 

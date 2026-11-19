@@ -2,12 +2,17 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 
 import org.firstinspires.ftc.teamcode.components.Turret;
 import org.firstinspires.ftc.teamcode.components.camera.VisionPortalCamera;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Locale;
+
 
 // Instructions to connect: adb connect 192.168.43.1:5555
 // cd %localappdata%/android/sdk/platform-tools
@@ -17,12 +22,21 @@ public class PlayerDrive extends RobotBase {
     private static final Logger log = LoggerFactory.getLogger(PlayerDrive.class);
 
     int targetTag = BLUE_TAG;
+    private ElapsedTime yellowPresenceTimer = null;
+    private boolean hasRumbledForGreen = false;
+
+    // Pattern for REV Blinkin LED Driver when target yellow is acquired (Forest Palette flashes/waves yellow & green)
+    public static RevBlinkinLedDriver.BlinkinPattern GREEN_INDICATOR_PATTERN = RevBlinkinLedDriver.BlinkinPattern.DARK_GREEN;
+
 
     @Override
+
     public void init() {
         super.init();
-        initCamera();
+        // initCamera();
     }
+
+
 
     @Override
     public void init_loop() {
@@ -34,6 +48,7 @@ public class PlayerDrive extends RobotBase {
         if (gamepad2.dpadRightWasPressed()) {
             targetTag = RED_TAG;
         }
+
         commonPrintData();
     }
 
@@ -95,7 +110,11 @@ public class PlayerDrive extends RobotBase {
             launcher.togglePower(gamepad2.left_trigger > 0.1, launcher.MAX_POWER);
         }
 
-        stableVelocity = launcher.reachedVelocity() && launcher.motor.getVelocity() > 0;
+        if (launcher.motor != null) {
+            stableVelocity = launcher.reachedVelocity() && launcher.motor.getVelocity() > 0;
+        } else {
+            stableVelocity = false;
+        }
 
         if (gamepad2.dpadRightWasPressed()) {
             intake.swapDirection();
@@ -110,16 +129,24 @@ public class PlayerDrive extends RobotBase {
         rTransport.togglePower(ACTIVE_INTAKE, rTransport.MAX_POWER);
 
         stopper.togglePosition(!gamepad2.y);
+        flowerTaker.togglePosition(!gamepad2.x);
+        // Inside commonPrintData() or loop():
+        telemetry.addData("FlowerTaker Button", gamepad2.x ? "Pressed" : "Not Pressed");
     }
 
     //Telemetry + Debug Data
     private void commonPrintData() {
         telemetry.addLine("|||--IMPORTANT INFORMATION--|||");
-        telemetry.addData("Launcher Velocity", launcher.motor.getVelocity());
+        if (launcher.motor != null) {
+            telemetry.addData("Launcher Velocity", launcher.motor.getVelocity());
+            telemetry.addData("Launcher Power", launcher.motor.getPower());
+        } else {
+            telemetry.addData("Launcher Velocity", "N/A (Motor Missing)");
+            telemetry.addData("Launcher Power", "N/A (Motor Missing)");
+        }
         telemetry.addData("Launcher Target Velocity (Supposed)", curVelTarget);
         telemetry.addData("Launcher Target Velocity (ACTUAL)", launcher.targetVelocity);
         telemetry.addData("Launcher Velocity Stable", stableVelocity);
-        telemetry.addData("Launcher Power", launcher.motor.getPower());
         telemetry.addData("April Tag Visible", tag != null);
         telemetry.addData("Turret State", turret.curTurretState);
         telemetry.addData("Turret Target Global Yaw", turret.TARGET_GLOBAL_YAW);
@@ -147,5 +174,54 @@ public class PlayerDrive extends RobotBase {
         telemetry.addLine();
         telemetry.addData("didFirst", didFirst);
         telemetry.addData("appliedVelocityDirectly", appliedVelocityDirectly);
+
+        // Check if color sensor is connected
+        if (colorSensor != null) {
+            NormalizedRGBA colors = colorSensor.getNormalizedColors();
+
+            // Ratio-based Yellow detection (Works for Close: ~0.0105 & Far: ~0.0034)
+            double totalLight = colors.red + colors.green + colors.blue;
+            boolean isTargetYellow = (colors.green > colors.red)
+                                  && (colors.red > 1.2 * colors.blue)
+                                  && (colors.green > 1.2 * colors.blue)
+                                  && (totalLight > 0.004);
+
+            boolean showGreen = false;
+
+            // Must be continuously detected for at least 1.5 seconds
+            if (isTargetYellow) {
+                if (yellowPresenceTimer == null) {
+                    yellowPresenceTimer = new ElapsedTime();
+                } else if (yellowPresenceTimer.seconds() >= 1.5) {
+                    showGreen = true;
+                    if (!hasRumbledForGreen) {
+                        if (gamepad1 != null) gamepad1.rumbleBlips(2);
+                        if (gamepad2 != null) gamepad2.rumbleBlips(2);
+                        hasRumbledForGreen = true;
+                    }
+                }
+            } else {
+                yellowPresenceTimer = null; // Reset continuous timer if yellow is lost
+                hasRumbledForGreen = false;
+            }
+
+            if (indicator != null) {
+                if (showGreen) {
+                    indicator.setPattern(GREEN_INDICATOR_PATTERN);
+                } else {
+                    indicator.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
+                }
+            }
+
+            telemetry.addData("Target Yellow In Range", isTargetYellow ? "YES" : "NO");
+            double timeSeen = (yellowPresenceTimer != null) ? yellowPresenceTimer.seconds() : 0.0;
+            telemetry.addData("Time Held (Target >= 1.5s)", String.format(Locale.US, "%.2f s", timeSeen));
+            telemetry.addData("Indicator Status", showGreen ? ("GREEN (" + GREEN_INDICATOR_PATTERN + ")") : "OFF");
+            telemetry.addData("Red", colors.red);
+            telemetry.addData("Green", colors.green);
+            telemetry.addData("Blue", colors.blue);
+        } else {
+            telemetry.addData("Color Sensor", "Missing / Not Connected");
+        }
     }
 }

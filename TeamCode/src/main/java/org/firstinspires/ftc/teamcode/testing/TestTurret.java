@@ -12,9 +12,10 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 public class TestTurret extends AutoBase {
 
     @Override
+
     public void init() {
         super.init();
-        initCamera();
+        // initCamera();
 
         turret.curTurretState = Turret.TurretState.GO_TO_GLOBAL_TARGET;
     }

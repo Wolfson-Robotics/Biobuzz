@@ -10,10 +10,13 @@ import java.util.List;
 public class TestAprilTagDetection extends RobotBase {
 
     @Override
+
     public void init() {
         super.init();
-        initCamera();
+        // initCamera();
     }
+
+
 
     @Override
     public void loop() {

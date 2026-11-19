@@ -47,13 +47,23 @@ public class Turret extends RollerEx {
 
     public Turret(DcMotorEx motor) {
         super(motor);
-        this.motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        this.motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        this.motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        if (this.motor != null) {
+            this.motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            this.motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            this.motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        }
     }
 
     public Turret(HardwareMap map, String motorName) {
-        this((DcMotorEx) map.get(motorName));
+        this((DcMotorEx) safeGet(map, motorName));
+    }
+
+    private static Object safeGet(HardwareMap map, String name) {
+        try {
+            return map.get(name);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
@@ -61,7 +71,7 @@ public class Turret extends RollerEx {
      * Requires imu to != null, set it by accessing and setting the property of the object
      */
     public void loop() {
-        if (imu == null) { return; }
+        if (imu == null || motor == null) { return; }
 
         //Update values
         encoderPos = motor.getCurrentPosition();
