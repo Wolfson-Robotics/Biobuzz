@@ -42,7 +42,7 @@ public abstract class AutoBase extends RobotBase {
         stopper.applyPosition(stopper.MIN_POSITION); 
         turret.switchTurretState(Turret.TurretState.GO_TO_ZERO);
 
-        FAR_VELOCITY = 1350;
+        FAR_VELOCITY = 1320;
     }
 
     @Override

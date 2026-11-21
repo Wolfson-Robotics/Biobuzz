@@ -57,10 +57,10 @@ public abstract class RobotBase extends OpMode {
     protected final String storagePath = Environment.getExternalStorageDirectory().getPath();
     protected final String logsPath = storagePath + "/Logs/";
 
-    PIDFCoefficients launcherPIDF = new PIDFCoefficients(167, 0, 0, 13.3);
+    PIDFCoefficients launcherPIDF = new PIDFCoefficients(167, 1, 0, 13.3);
 
-    public double FAR_VELOCITY = 1350;
-    public double CLOSE_VELOCITY = 1400;
+    public double FAR_VELOCITY = 1300;
+    public double CLOSE_VELOCITY = 1320;
     public final int BLUE_TAG = 20, RED_TAG = 24, GPP_TAG = 22, PGP_TAG = 22, PPG_TAG = 23;
 
     public static final AtomicBoolean stopRequested = new AtomicBoolean(false);

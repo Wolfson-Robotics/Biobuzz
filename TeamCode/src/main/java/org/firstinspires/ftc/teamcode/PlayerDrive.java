@@ -64,16 +64,21 @@ public class PlayerDrive extends RobotBase {
         //Driving
         driveSystem.drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 
-        //Slow down when holding left or right bumper
-        if (gamepad1.right_bumper || gamepad1.left_bumper) { driveSystem.powerFactor = 0.2; }
+        //Slow down when holding left bumper
+        if (gamepad1.left_bumper) { driveSystem.powerFactor = 0.2; }
         else { driveSystem.powerFactor = 1.; }
+
+        // FlowerTaker tap toggle on Gamepad 1 Right Bumper
+        if (gamepad1.rightBumperWasPressed()) {
+            flowerTaker.switchPosition();
+        }
     }
 
     /*
         Intake, Launcher, Transfer
        --------------------------
     */
-    double curVelTarget = 1350; // Default to min
+    double curVelTarget = FAR_VELOCITY; // Default to min
     boolean stableVelocity = false;
     AprilTagDetection tag = null;
     boolean didFirst = false;
@@ -129,9 +134,7 @@ public class PlayerDrive extends RobotBase {
         rTransport.togglePower(ACTIVE_INTAKE, rTransport.MAX_POWER);
 
         stopper.togglePosition(!gamepad2.y);
-        flowerTaker.togglePosition(!gamepad2.x);
-        // Inside commonPrintData() or loop():
-        telemetry.addData("FlowerTaker Button", gamepad2.x ? "Pressed" : "Not Pressed");
+        telemetry.addData("FlowerTaker Tapped (Gamepad 1 A)", gamepad1.aWasPressed() ? "Yes" : "No");
     }
 
     //Telemetry + Debug Data
@@ -192,7 +195,7 @@ public class PlayerDrive extends RobotBase {
             if (isTargetYellow) {
                 if (yellowPresenceTimer == null) {
                     yellowPresenceTimer = new ElapsedTime();
-                } else if (yellowPresenceTimer.seconds() >= 1.5) {
+                } else if (yellowPresenceTimer.seconds() >= 0.5) {
                     showGreen = true;
                     if (!hasRumbledForGreen) {
                         if (gamepad1 != null) gamepad1.rumbleBlips(2);
