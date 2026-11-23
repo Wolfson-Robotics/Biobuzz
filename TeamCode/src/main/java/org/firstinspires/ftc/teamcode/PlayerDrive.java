@@ -1,11 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.teamcode.pedropathing.Tuning.follower;
+
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.components.Turret;
-import org.firstinspires.ftc.teamcode.components.camera.VisionPortalCamera;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,12 +17,9 @@ public class PlayerDrive extends RobotBase {
 
     private static final Logger log = LoggerFactory.getLogger(PlayerDrive.class);
 
-    int targetTag = BLUE_TAG;
-
     @Override
     public void init() {
         super.init();
-        initCamera();
     }
 
     @Override
@@ -29,10 +27,10 @@ public class PlayerDrive extends RobotBase {
         super.init_loop();
 
         if (gamepad2.dpadLeftWasPressed()) {
-            targetTag = BLUE_TAG;
+            turret.isRedAlliance = false;
         }
         if (gamepad2.dpadRightWasPressed()) {
-            targetTag = RED_TAG;
+            turret.isRedAlliance = true;
         }
         commonPrintData();
     }
@@ -60,7 +58,6 @@ public class PlayerDrive extends RobotBase {
     */
     double curVelTarget = 1350; // Default to min
     boolean stableVelocity = false;
-    AprilTagDetection tag = null;
     boolean didFirst = false;
     boolean appliedVelocityDirectly = false;
     private void gamepad2Loop() {
@@ -75,10 +72,17 @@ public class PlayerDrive extends RobotBase {
             curVelTarget = curVelTarget != CLOSE_VELOCITY ? CLOSE_VELOCITY : FAR_VELOCITY;
         }
 
-        tag = VisionPortalCamera.getTargetTag(aTagProc, targetTag);
-        turret.TARGET_TAG = tag;
-        if (gamepad2.leftBumperWasPressed()) {
-            turret.switchTurretState(Turret.TurretState.FOLLOW_TAG);
+        if (FieldX < Position[0]) {
+            telemetry.addLine("Error overflow, X position outside the Field");
+            Position[0] = FieldX;
+        }
+        if (FieldY < Position[1]) {
+            telemetry.addLine("Error overflow, Y position outside the Field");
+            Position[1] = FieldY;
+        }
+
+        if (gamepad2.aWasPressed()) {
+            turret.tipperSideIndex = (turret.tipperSideIndex == 0) ? 1 : 0;
         }
         turret.loop(); //NECESSARY FOR TURRET TO WORK
 
@@ -120,9 +124,10 @@ public class PlayerDrive extends RobotBase {
         telemetry.addData("Launcher Target Velocity (ACTUAL)", launcher.targetVelocity);
         telemetry.addData("Launcher Velocity Stable", stableVelocity);
         telemetry.addData("Launcher Power", launcher.motor.getPower());
-        telemetry.addData("April Tag Visible", tag != null);
-        telemetry.addData("Turret State", turret.curTurretState);
-        telemetry.addData("Turret Target Global Yaw", turret.TARGET_GLOBAL_YAW);
+        telemetry.addData("Red Alliance", turret.isRedAlliance);
+        telemetry.addData("Turret Target Yaw", turret.TARGET_TURRET_YAW);
+        telemetry.addData("Turret Current Yaw", turret.turretYaw);
+        telemetry.addData("Tipper Side Index", turret.tipperSideIndex);
         telemetry.addLine("|||-------------------------|||");
         telemetry.addLine();
         telemetry.addLine();
@@ -135,7 +140,7 @@ public class PlayerDrive extends RobotBase {
         telemetry.addLine("|||-------------------------|||");
         telemetry.addLine("|||----GAMEPAD2 CONTROLS----|||");
         telemetry.addData("Launcher", "Right Bumper (Toggle)");
-        telemetry.addData("Turret State Toggle", "Left Bumper (Toggle)");
+        telemetry.addData("Tipper Side Toggle", "A (Toggle)");
         telemetry.addData("Intake", "Right Trigger (Hold)");
         telemetry.addData("Open Stopper", "Y (Hold)");
         telemetry.addData("Swap Intake Direction", "Dpad Right (Toggle)");

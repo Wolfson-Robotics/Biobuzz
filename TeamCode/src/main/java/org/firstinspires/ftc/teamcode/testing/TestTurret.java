@@ -44,12 +44,9 @@ public class TestTurret extends AutoBase {
         double distX = pinpoint.getPosX(DistanceUnit.INCH);
         double distY = pinpoint.getPosY(DistanceUnit.INCH);
 
-        turret.TARGET_TAG = tag;
+        // turret.TARGET_TAG = tag;
         if (gamepad1.xWasPressed()) {
             turret.curTurretState = Turret.TurretState.GO_TO_ZERO;
-        }
-        if (gamepad1.yWasPressed()) {
-            turret.curTurretState = Turret.TurretState.FOLLOW_TAG;
         }
         //turret.loop();
         turret.loop();

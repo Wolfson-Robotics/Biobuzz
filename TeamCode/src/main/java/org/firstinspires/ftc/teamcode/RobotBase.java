@@ -13,6 +13,9 @@ import com.qualcomm.robotcore.hardware.ImuOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -35,7 +38,8 @@ public abstract class RobotBase extends OpMode {
     public Turret turret;
     public Roller<DcMotor> intake, transfer, lTransport, rTransport;
     public ServoEx<Servo> stopper;
-
+    public DcMotor driveEncoder;
+    public DcMotor strafeEncoder;
     public VisionPortalCamera camera;
     public AprilTagProcessor aTagProc;
 
@@ -51,7 +55,17 @@ public abstract class RobotBase extends OpMode {
     public double FAR_VELOCITY = 1350;
     public double CLOSE_VELOCITY = 1400;
     public final int BLUE_TAG = 20, RED_TAG = 24, GPP_TAG = 22, PGP_TAG = 22, PPG_TAG = 23;
-
+    public final double FieldX = 144; // X in inches
+    public final double FieldY = 144; // Y in inches
+    public final double[][] tipperBlue = {
+            {36, 30}, // X, Y in inches side facing the origin
+            {36, 96} // X, Y in inches side facing away from the origin
+    };
+    public final double[][] tipperRed = {
+            {84, 30}, // X, Y in inches
+            {84, 96}
+    };
+    public double[] Position = new double[3]; // x, y, heading
     public static final AtomicBoolean stopRequested = new AtomicBoolean(false);
 
     //If overriding init(), make to sure call super.init();
@@ -86,10 +100,12 @@ public abstract class RobotBase extends OpMode {
 
         turret = new Turret((DcMotorEx) hardwareMap.get("aimer"));
         turret.imu = imu;
+        turret.Position = Position;
+        turret.tipperBlue = tipperBlue;
+        turret.tipperRed = tipperRed;
         turret.TICKS_PER_REV = 537.7;
         turret.GEAR_RATIO = 92.0 / 200.0;
         turret.MAX_POWER = 0.5;
-        turret.curTurretState = Turret.TurretState.GO_TO_ZERO;
 
         transfer = new Roller<>(hardwareMap, "transfer");
         transfer.swapDirection();
